@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { v4 as uuidv4 } from 'uuid';
 
 interface DirectChat {
   id: string;
@@ -52,8 +51,7 @@ export async function POST(request: Request) {
     .from('direct_chats')
     .select('id, participant1_id, participant2_id, created_at, updated_at')
     .or(
-      `participant1_id = '${participant1_id}' and participant2_id = '${participant2_id}'`,
-      `participant1_id = '${participant2_id}' and participant2_id = '${participant1_id}'`
+      `and(participant1_id.eq.${participant1_id},participant2_id.eq.${participant2_id}),and(participant1_id.eq.${participant2_id},participant2_id.eq.${participant1_id})`
     )
     .single();
 
@@ -75,7 +73,7 @@ export async function POST(request: Request) {
 
   // Create new direct chat
   const newChat: DirectChat = {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     participant1_id,
     participant2_id,
     created_at: new Date().toISOString(),
@@ -85,6 +83,7 @@ export async function POST(request: Request) {
   const { data: inserted, error: insertError } = await supabase
     .from('direct_chats')
     .insert(newChat)
+    .select('*')
     .single();
 
   if (insertError) {

@@ -25,6 +25,7 @@ export default function CreateRoomPage() {
     const { data, error } = await supabase
       .from('rooms')
       .insert(payload)
+      .select('id')
       .single();
 
     if (error) {

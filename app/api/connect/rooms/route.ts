@@ -1,14 +1,5 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { v4 as uuidv4 } from 'uuid';
-
-// Types
-interface Room {
-  id: string;
-  name: string;
-  org_id: string;
-  created_at: string;
-}
 
 interface CreateRoomPayload {
   name: string;
@@ -50,6 +41,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from('rooms')
     .insert({ name, org_id })
+    .select('*')
     .single();
 
   if (error) {

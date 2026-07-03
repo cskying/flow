@@ -30,6 +30,7 @@ export async function POST(request: Request) {
       direct_chat_id,
       status: 'pending',
     })
+    .select('*')
     .single();
 
   if (error) {

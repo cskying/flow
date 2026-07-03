@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return [{ id: '1' }, { id: '2' }, { id: '3' }];
+}
+
 interface MessagePayload {
   content: string;
 }
@@ -25,6 +31,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       sender_id: 'current_user_id', // placeholder
       content,
     })
+    .select('*')
     .single();
 
   if (error) {

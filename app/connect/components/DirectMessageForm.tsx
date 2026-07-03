@@ -1,17 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { useState } from 'react';
 
 interface DirectMessageFormProps {
   directChatId: string;
-  onMessageChange: (value: string) => void;
-  onSend: () => void;
 }
 
-export function DirectMessageForm({ directChatId, onMessageChange, onSend }: DirectMessageFormProps) {
+export function DirectMessageForm({ directChatId }: DirectMessageFormProps) {
   const [messages, setMessages] = useState<Array<{ id: string; content: string; created_at: string }>>([]);
   const [draft, setDraft] = useState('');
 
@@ -28,13 +24,14 @@ export function DirectMessageForm({ directChatId, onMessageChange, onSend }: Dir
         console.error('Error fetching direct messages:', error);
         return;
       }
-      setMessages(data);
+      setMessages(data ?? []);
     };
     fetchMessages();
   }, [directChatId]);
 
   const handleSend = async () => {
-    if (!draft.trim()) return;
+    const content = draft.trim();
+    if (!content) return;
 
     const { data, error } = await supabase
       .from('direct_messages')
@@ -42,18 +39,25 @@ export function DirectMessageForm({ directChatId, onMessageChange, onSend }: Dir
         {
           direct_chat_id: directChatId,
           sender_id: 'current_user_id', // placeholder
-          content: draft.trim(),
+          content,
         },
-      ]);
+      ])
+      .select('id, content, created_at')
+      .single();
 
     if (error) {
       console.error('Error sending direct message:', error);
       return;
     }
 
+    const sentMessage = data ?? {
+      id: crypto.randomUUID(),
+      content,
+      created_at: new Date().toISOString(),
+    };
+
     setDraft('');
-    // Optimistically add message
-    setMessages((prev) => [...prev, { id: data?.[0]?.id ?? crypto.randomUUID(), content: draft.trim(), created_at: new Date().toISOString() }]);
+    setMessages((prev) => [...prev, sentMessage]);
   };
 
   return (
@@ -66,7 +70,7 @@ export function DirectMessageForm({ directChatId, onMessageChange, onSend }: Dir
         <input
           type="text"
           value={draft}
-          onChange={(e) => onMessageChange(e.target.value)}
+          onChange={(e) => setDraft(e.target.value)}
           placeholder="Type a message..."
           className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />

@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return [{ id: '1' }, { id: '2' }, { id: '3' }];
+}
+
 interface MemberPayload {
   user_id: string;
 }
@@ -21,6 +27,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   const { data, error } = await supabase
     .from('room_members')
     .insert({ room_id: id, user_id })
+    .select('*')
     .single();
 
   if (error) {

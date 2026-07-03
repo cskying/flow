@@ -1,24 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 interface MessageFormProps {
   roomId: string;
   onMessageChange: (value: string) => void;
-  onSend: () => void;
+  onSend: (message: string) => void | Promise<void>;
 }
 
 export function MessageForm({ roomId, onMessageChange, onSend }: MessageFormProps) {
   const [message, setMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim()) {
-      onSend();
-      setMessage('');
-    }
+    const content = message.trim();
+    if (!content) return;
+
+    await onSend(content);
+    setMessage('');
+    onMessageChange('');
   };
 
   return (
@@ -26,7 +26,10 @@ export function MessageForm({ roomId, onMessageChange, onSend }: MessageFormProp
       <input
         type="text"
         value={message}
-        onChange={(e) => onMessageChange(e.target.value)}
+        onChange={(e) => {
+          setMessage(e.target.value);
+          onMessageChange(e.target.value);
+        }}
         placeholder="Type a message..."
         className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
       />

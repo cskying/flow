@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-interface Message {
-  id: string;
-  direct_chat_id: string;
-  sender_id: string;
-  content: string;
-  created_at: string;
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return [{ id: '1' }];
 }
 
 // GET: Fetch direct messages for a direct chat

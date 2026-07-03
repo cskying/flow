@@ -33,7 +33,7 @@ export default function AdminReviewsPage() {
       console.error('Error loading reviews:', error);
       return;
     }
-    setReviews(data);
+    setReviews(data ?? []);
   };
 
   useEffect(() => {
@@ -45,7 +45,9 @@ export default function AdminReviewsPage() {
     setNewReview((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     const { admin_id, reason, room_id, direct_chat_id } = newReview;
 
     if (!admin_id || !reason) {
@@ -53,7 +55,7 @@ export default function AdminReviewsPage() {
       return;
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('reviews')
       .insert({
         admin_id,
@@ -62,6 +64,7 @@ export default function AdminReviewsPage() {
         direct_chat_id: direct_chat_id || null,
         status: 'pending',
       })
+      .select('id')
       .single();
 
     if (error) {
